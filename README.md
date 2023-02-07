@@ -52,6 +52,16 @@ Após extrair os embeddings utilizando o script `extract_embedding.py` serão cr
 
 ## Avaliação
 
+script:
+```
+evaluation.py <embedding_path> <metadados_path>
+
+Params:
+
+embedding_path: Arquivo de embeddings.
+metadados_path: Arquivo de metadados
+```
+
 Example:
 
 ```bash
