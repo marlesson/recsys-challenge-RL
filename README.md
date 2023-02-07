@@ -52,4 +52,8 @@ Após extrair os embeddings utilizando o script `extract_embedding.py` serão cr
 
 ## Avaliação
 
-TODO
+Example:
+
+```bash
+python evaluation/evaluation.py data/baseline/embeddings.txt data/baseline/metadados.csv
+```
