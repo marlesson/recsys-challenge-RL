@@ -122,6 +122,6 @@ python evaluation/evaluation.py data/models/random/embeddings.txt data/models/ra
 > Avaliação de Embeddings
 > Embeddings:  data/models/random/embeddings.txt
 > Total Users:  1000
-> NDCG@5:  0.37758210414715837
-> NDCG@10:  0.41820137118092454
+> NDCG@5:  0.4490953192454955
+> NDCG@10:  0.5098859573979446
 ```
