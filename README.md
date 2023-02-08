@@ -17,21 +17,54 @@ O datastet da Yelp é composto por 6 arquivos contendo diferentes informações:
 
 O objetivo do trabalho é que sejam criados os embeddings dos bussiness, que no caso são os restaurantes a serem recomendados a partir da similaridade. Todas as informações no dataset podem ser utilizadas para criação do embedding, embora nem todas sejam úteis.
 
-## Baseline
-
-O Base line consiste em utilizzar um modelo de linguagem do huggingface para extrair os embeddings dos nomes dos restaurantes utilizando a biblioteca https://github.com/huggingface/transformers
-
 ### Transforma o Dataset `.json` em `.csv`
 
+O script abaixo transforma o dataset em `.json` em `.csv`.
+
 ```bash
-python json_to_csv_converter.py data/yelp_dataset/yelp_academic_dataset_business.json
+python scripts/json_to_csv_converter.py data/yelp_dataset/yelp_academic_dataset_business.json
 ```
 
-### Exporta os embeedings utilizando o modelo 
+## Baseline Models
+
+É possível utilizar dois modelos baselines para teste, um modelo randomico que consiste em gerar embeddings aleatórios e um modelo baseado em embeddings de texto. 
+
+### Random Model
+
+Script que gera embeddings randomicos para valiadação.
+
+#### Exportar embeddings
 
 script:
 ```
-extract_embedding.py <model_base> <csv_file> <output_path> 
+baseline/extract_random_embedding.py <csv_file> <output_path> 
+
+Params:
+
+csv_file: The csv file to extract the embeddings.
+output_path: The output path to save the embeddings and metadata.
+```
+
+Example: 
+```bash
+python baseline/extract_random_embedding.py data/dataset/yelp_dataset/yelp_academic_dataset_business.csv data/models/random
+```
+
+Após extrair os embeddings utilizando o script `extract_random_embedding.py` serão criados os arquivos:
+
+- **embeddings.txt**:  Contém apenas os embeddings dos itens
+- **metadados.csv**: Contém todos os metadados utilizados junto com o business_id para identificar o embedding do item. Os dois arquivos devem estar na mesma ordem pra dar match.
+
+### Text Embedding
+
+O Base line consiste em utilizar um modelo de linguagem do huggingface para extrair os embeddings dos nomes dos restaurantes utilizando a biblioteca https://github.com/huggingface/transformers
+
+
+#### Exportar embeddings
+
+script:
+```
+baseline/extract_text_embedding.py <model_base> <csv_file> <output_path> 
 
 Params:
 
@@ -42,19 +75,40 @@ output_path: The output path to save the embeddings and metadata.
 
 Example: 
 ```bash
-python baseline/extract_embedding.py bert-base-uncased data/yelp_dataset/yelp_academic_dataset_business.csv data/output/
+python baseline/extract_text_embedding.py bert-base-uncased data/dataset/yelp_dataset/yelp_academic_dataset_business.csv data/output/text_emb
 ```
 
-Após extrair os embeddings utilizando o script `extract_embedding.py` serão criados os arquivos:
+Após extrair os embeddings utilizando o script `extract_text_embedding.py` serão criados os arquivos:
 
 - **embeddings.txt**:  Contém apenas os embeddings dos itens
 - **metadados.csv**: Contém todos os metadados utilizados junto com o business_id para identificar o embedding do item. Os dois arquivos devem estar na mesma ordem pra dar match.
 
 ## Avaliação
 
+A avaliação seguirá a seguinte lógica:
+
+- Iremos separar um determinado grupo de usuários (user.json) para servir como teste.
+- Para cada usuário desse grupo, escolheremos o business com a review (review.json) de maior nota para servir como groudtruth da preferência do usuário criando assim o perfil do usuário.
+- As demais reviews do usuário (n) servirão como business groudtruth (itens que o usuário interagiu) a serem avaliados em um conjunto com outros k business escolhidos aleatoriamente no dataset (itens que o usuário não interagiu).
+- A ordenação dos itens será realizada a partir da similaridade de cosseno em relação ao perfil do usuário, desse modo todos os k+n itens serão ranqueados onde espera-se que os itens groudtruth sejam melhor ranqueados.
+- A métrica utilizada para avaliar a lista de ranqueada será o NDCG@5. 
+
+### Dataset de avaliação
+
+`data/evaluation/eval_users.csv`, subsete de 1000 usuários extraidos do `user.json` contendo: 
+
+- **user_id**: Id do usuário
+- **business_with_5**: Bussines com 5 estrelas, utilizado para montar o perfil do usuário
+- **total_with_5**: Total de bussines com 5 estrelas
+- **business_less_5**: Bussines com menos de 5 estrelas, utilizado com groudtruth para avaliação
+- **total_less_5**: Total de bussines com menos de 5 estrelas
+- **reclist**: Lista contento os bussines com menos de 5 estrelas e alguns (10) bussiness aleatórios que devem ser ordenados para avaliação
+
+### Executando a Avaliação
+
 script:
 ```
-evaluation.py <embedding_path> <metadados_path>
+evaluation/evaluation.py <embedding_path> <metadados_path>
 
 Params:
 
@@ -65,5 +119,11 @@ metadados_path: Arquivo de metadados
 Example:
 
 ```bash
-python evaluation/evaluation.py data/baseline/embeddings.txt data/baseline/metadados.csv
+python evaluation/evaluation.py data/models/random/embeddings.txt data/models/random/metadados.csv
+
+> Avaliação de Embeddings
+> Embeddings:  data/models/random/embeddings.txt
+> Total Users:  1000
+> NDCG@5:  0.37758210414715837
+> NDCG@10:  0.41820137118092454
 ```
