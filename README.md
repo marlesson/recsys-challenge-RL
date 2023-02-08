@@ -98,11 +98,9 @@ A avaliação seguirá a seguinte lógica:
 `data/evaluation/eval_users.csv`, subsete de 1000 usuários extraidos do `user.json` contendo: 
 
 - **user_id**: Id do usuário
-- **business_with_5**: Bussines com 5 estrelas, utilizado para montar o perfil do usuário
-- **total_with_5**: Total de bussines com 5 estrelas
-- **business_less_5**: Bussines com menos de 5 estrelas, utilizado com groudtruth para avaliação
-- **total_less_5**: Total de bussines com menos de 5 estrelas
-- **reclist**: Lista contento os bussines com menos de 5 estrelas e alguns (10) bussiness aleatórios que devem ser ordenados para avaliação
+- **user_perfil**: Bussines com 5 estrelas  dado pelo usuário, utilizado para montar o perfil do usuário
+- **gt_reclist**: Total de bussines com 4 e 5 estrelas interagido pelo usuário
+- **reclist**: Lista contento os bussines do gt_reclist e alguns (10) bussiness aleatórios que devem ser ordenados para avaliação
 
 ### Executando a Avaliação
 
