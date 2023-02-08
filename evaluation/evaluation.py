@@ -107,9 +107,8 @@ def read_eval_ds():
     Read the evaluation dataset.
     """
     df = pd.read_csv("data/evaluation/eval_users.csv")
-    df["business_with_5"] = df["business_with_5"].apply(eval)#.apply(lambda x: x.split(","))
-    df["business_less_5"] = df["business_less_5"].apply(eval)#.apply(lambda x: x.split(","))
-    df["reclist"] = df["reclist"].apply(eval)#$.apply(lambda x: x.split(","))
+    df["gt_reclist"] = df["gt_reclist"].apply(eval)
+    df["reclist"] = df["reclist"].apply(eval)
     
     return df
 
@@ -125,6 +124,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    # Load Evaluation Dataset
+    eval_users = read_eval_ds()
+
     # Create a vector space from the embeddings
     index, df = create_vector_space(args.embeddings_path, args.metadados_path)
     print(df.head())
@@ -133,14 +135,11 @@ if __name__ == '__main__':
     item_code_id = {i: code for i, code in enumerate(df['business_id'])}
     item_id_code = {code: i for i, code in enumerate(df['business_id'])}
 
-    # Load Evaluation Dataset
-    eval_users = read_eval_ds()
     ndcg_5_list = []
     ndcg_10_list = []
-
     for i, row in tqdm(eval_users.iterrows()):
-        context_list = row.business_with_5
-        gt_list = row.business_less_5
+        context_list = [row.user_perfil]
+        gt_list = row.gt_reclist
         reclist = row.reclist
 
         # create context array
@@ -159,9 +158,8 @@ if __name__ == '__main__':
             rank_bussiness_id[bussiness_id] = cos_sim
         
         # order list from dict and create a binary list
-        rank_bussiness_id = {k: v for k, v in sorted(rank_bussiness_id.items(), key=lambda item: item[1], reverse=False)}
-        #
-        reclist_ranked = list(rank_bussiness_id.keys())
+        rank_bussiness_id = {k: v for k, v in sorted(rank_bussiness_id.items(), key=lambda item: item[1], reverse=True)}
+        reclist_ranked    = list(rank_bussiness_id.keys())
 
         binary_reclist = [1 if x in gt_list else 0 for x in reclist_ranked]
 
